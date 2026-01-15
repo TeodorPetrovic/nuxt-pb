@@ -1,0 +1,37 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Page {
+  id          String   @id @default(uuid())
+  title       String
+  slug        String   @unique
+  content     Json     // Stores the page structure as JSON
+  published   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@map("pages")
+}
+
+model Component {
+  id          String   @id @default(uuid())
+  name        String
+  type        String   // text, image, button, container, etc.
+  category    String   // layout, content, form, etc.
+  icon        String?
+  template    String   @db.Text // HTML template
+  properties  Json     // Component default properties
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@map("components")
+}
