@@ -64,7 +64,7 @@
               <button @click.stop="moveDown(index)" :disabled="index === currentPage.content.length - 1">↓</button>
               <button @click.stop="deleteComponent(index)" class="delete-btn">×</button>
             </div>
-            <component-renderer :component="component" />
+            <ComponentRenderer :component="component" />
           </div>
         </div>
       </main>
