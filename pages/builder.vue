@@ -113,6 +113,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import ComponentRenderer from '~/components/builder/ComponentRenderer.vue'
 
 const router = useRouter()
 
