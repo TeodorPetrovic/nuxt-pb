@@ -19,7 +19,7 @@
       <!-- Ribbon Content -->
       <div class="ribbon-content">
         <HomeRibbon v-if="activeTab === 'Home'" />
-        <InsertRibbon v-if="activeTab === 'Insert'" />
+        <InsertRibbon v-if="activeTab === 'Insert'" @show-chart-modal="openChartModal" />
         <FormulasRibbon v-if="activeTab === 'Formulas'" />
         <DataRibbon v-if="activeTab === 'Data'" />
         <ViewRibbon v-if="activeTab === 'View'" />
@@ -138,6 +138,11 @@ const showChartModal = ref(false)
 const selectedChartType = ref<'column' | 'line' | 'pie' | 'bar'>('column')
 
 const currentCellRef = computed(() => getCellReference(currentCell.value[0], currentCell.value[1]))
+
+function openChartModal(type: 'column' | 'line' | 'pie' | 'bar' | 'area' | 'scatter') {
+  selectedChartType.value = type
+  showChartModal.value = true
+}
 
 function onCellSelect(row: number, col: number) {
   currentCell.value = [row, col]

@@ -63,11 +63,38 @@ function getCellDisplay(row: number, col: number): string {
   if (cell.formula) {
     try {
       const result = evaluateFormula(cell.formula, (ref: string) => {
-        // Simple cell reference parsing
-        return 0 // Placeholder for now
+        // Parse cell reference (e.g., "A1", "B5")
+        const match = ref.match(/^([A-Z]+)(\d+)$/)
+        if (!match) return null
+        
+        const colLetter = match[1]
+        const rowNum = parseInt(match[2]) - 1
+        
+        // Convert column letter to number
+        let colNum = 0
+        for (let i = 0; i < colLetter.length; i++) {
+          colNum = colNum * 26 + (colLetter.charCodeAt(i) - 64)
+        }
+        colNum -= 1
+        
+        // Get the cell value
+        const refCell = store.getCellValue(rowNum, colNum)
+        if (!refCell) return null
+        
+        // If the referenced cell has a formula, evaluate it
+        if (refCell.formula) {
+          const refResult = evaluateFormula(refCell.formula, (nestedRef) => {
+            // Prevent infinite recursion
+            return null
+          })
+          return refResult
+        }
+        
+        return refCell.value
       })
       return String(result)
-    } catch {
+    } catch (error) {
+      console.error('Formula evaluation error:', error)
       return '#ERROR!'
     }
   }

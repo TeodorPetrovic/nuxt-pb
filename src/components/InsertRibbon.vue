@@ -100,8 +100,7 @@ function insertPivotTable() {
 
 // Charts
 function insertChart(type: 'column' | 'line' | 'pie' | 'bar' | 'area' | 'scatter') {
-  console.log('Insert Chart:', type)
-  alert(`${type.charAt(0).toUpperCase() + type.slice(1)} chart inserted!`)
+  emit('show-chart-modal', type)
 }
 
 // Sparklines
