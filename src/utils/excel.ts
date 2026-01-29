@@ -1,78 +1,100 @@
-import * as XLSX from 'xlsx'
+import ExcelJS from 'exceljs'
 import type { Sheet } from '../types'
 
-export function exportToExcel(sheets: Sheet[], filename: string = 'spreadsheet.xlsx') {
-  const workbook = XLSX.utils.book_new()
+export async function exportToExcel(sheets: Sheet[], filename: string = 'spreadsheet.xlsx') {
+  const workbook = new ExcelJS.Workbook()
 
   sheets.forEach(sheet => {
-    // Convert our data format to Excel format
-    const worksheetData: any[][] = []
+    const worksheet = workbook.addWorksheet(sheet.name)
     
+    // Add data to worksheet
     for (let row = 0; row < sheet.rowCount; row++) {
-      const rowData: any[] = []
       for (let col = 0; col < sheet.colCount; col++) {
         const cell = sheet.data[row]?.[col]
-        if (cell?.formula) {
-          rowData.push(cell.formula)
-        } else {
-          rowData.push(cell?.value ?? '')
+        if (cell) {
+          const excelCell = worksheet.getCell(row + 1, col + 1)
+          
+          if (cell.formula) {
+            excelCell.value = { formula: cell.formula.startsWith('=') ? cell.formula.slice(1) : cell.formula }
+          } else if (cell.value !== null && cell.value !== undefined) {
+            excelCell.value = cell.value
+          }
+          
+          // Apply cell styling
+          if (cell.style) {
+            excelCell.font = {
+              bold: cell.style.bold,
+              italic: cell.style.italic,
+              underline: cell.style.underline,
+              size: cell.style.fontSize,
+              name: cell.style.fontFamily,
+              color: cell.style.color ? { argb: cell.style.color.replace('#', 'FF') } : undefined
+            }
+            
+            if (cell.style.backgroundColor) {
+              excelCell.fill = {
+                type: 'pattern',
+                pattern: 'solid',
+                fgColor: { argb: cell.style.backgroundColor.replace('#', 'FF') }
+              }
+            }
+            
+            excelCell.alignment = {
+              horizontal: cell.style.textAlign as any,
+              vertical: cell.style.verticalAlign as any
+            }
+          }
         }
       }
-      worksheetData.push(rowData)
     }
-
-    const worksheet = XLSX.utils.aoa_to_sheet(worksheetData)
-    XLSX.utils.book_append_sheet(workbook, worksheet, sheet.name)
   })
 
   // Generate Excel file and download
-  XLSX.writeFile(workbook, filename)
+  const buffer = await workbook.xlsx.writeBuffer()
+  const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
+  const link = document.createElement('a')
+  link.href = URL.createObjectURL(blob)
+  link.download = filename
+  link.click()
+  URL.revokeObjectURL(link.href)
 }
 
-export function importFromExcel(file: File): Promise<Sheet[]> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
+export async function importFromExcel(file: File): Promise<Sheet[]> {
+  const buffer = await file.arrayBuffer()
+  const workbook = new ExcelJS.Workbook()
+  await workbook.xlsx.load(buffer)
 
-    reader.onload = (e) => {
-      try {
-        const data = e.target?.result
-        const workbook = XLSX.read(data, { type: 'binary' })
+  const sheets: Sheet[] = []
+  
+  workbook.eachSheet((worksheet, sheetId) => {
+    const maxRows = Math.max(worksheet.rowCount, 100)
+    const maxCols = Math.max(worksheet.columnCount, 26)
+    
+    const sheetData: any[][] = Array(maxRows).fill(null).map(() => 
+      Array(maxCols).fill(null).map(() => ({ value: null }))
+    )
 
-        const sheets: Sheet[] = workbook.SheetNames.map((sheetName, index) => {
-          const worksheet = workbook.Sheets[sheetName]
-          const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as any[][]
+    worksheet.eachRow((row, rowNumber) => {
+      row.eachCell({ includeEmpty: false }, (cell, colNumber) => {
+        const value = cell.value
+        
+        sheetData[rowNumber - 1][colNumber - 1] = {
+          value: typeof value === 'object' && value !== null && 'formula' in value ? null : value,
+          formula: typeof value === 'object' && value !== null && 'formula' in value ? `=${value.formula}` : undefined
+        }
+      })
+    })
 
-          // Convert to our format
-          const maxCols = Math.max(...jsonData.map(row => row.length), 26)
-          const maxRows = Math.max(jsonData.length, 100)
-
-          const sheetData = Array(maxRows).fill(null).map((_, rowIdx) => 
-            Array(maxCols).fill(null).map((_, colIdx) => {
-              const value = jsonData[rowIdx]?.[colIdx]
-              return {
-                value: value !== undefined && value !== null ? value : null
-              }
-            })
-          )
-
-          return {
-            id: (index + 1).toString(),
-            name: sheetName,
-            data: sheetData,
-            rowCount: maxRows,
-            colCount: maxCols
-          }
-        })
-
-        resolve(sheets)
-      } catch (error) {
-        reject(error)
-      }
-    }
-
-    reader.onerror = () => reject(reader.error)
-    reader.readAsBinaryString(file)
+    sheets.push({
+      id: String(sheetId),
+      name: worksheet.name,
+      data: sheetData,
+      rowCount: maxRows,
+      colCount: maxCols
+    })
   })
+
+  return sheets
 }
 
 export function exportToCSV(sheet: Sheet, filename: string = 'spreadsheet.csv') {

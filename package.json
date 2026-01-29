@@ -13,7 +13,7 @@
     "vue": "^3.4.0",
     "vue-router": "^4.2.0",
     "pinia": "^2.1.0",
-    "xlsx": "^0.18.5",
+    "exceljs": "^4.4.0",
     "chart.js": "^4.4.0",
     "vue-chartjs": "^5.3.0",
     "@vueuse/core": "^10.7.0"

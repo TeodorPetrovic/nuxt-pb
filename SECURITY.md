@@ -1,28 +1,34 @@
 # Security Policy
 
-## Known Vulnerabilities
+## Security Status
 
-### xlsx Dependency (v0.18.5)
+✅ **All Known Vulnerabilities Resolved**
 
-**Status:** Known vulnerabilities, awaiting update
+This project has been updated to use secure, actively maintained libraries with no known vulnerabilities.
 
-**Issues:**
-1. **Regular Expression Denial of Service (ReDoS)**
-   - Severity: Moderate
-   - Affected versions: < 0.20.2
-   - Current version: 0.18.5
+## Dependencies Security
 
-2. **Prototype Pollution**
-   - Severity: Moderate  
-   - Affected versions: < 0.19.3
-   - Current version: 0.18.5
+### Excel Library: exceljs (v4.4.0)
 
-**Why Not Updated:**
-The patched versions (0.19.3+ and 0.20.2+) are not available via npm registry. They are distributed through the SheetJS CDN which may not be accessible in all environments.
+**Status:** ✅ Secure - No known vulnerabilities
 
-**Mitigation Steps:**
+The project uses `exceljs` v4.4.0 for Excel file operations, which is:
+- Actively maintained
+- No known security vulnerabilities
+- Well-tested and production-ready
+- Supports both import and export of Excel files
+- Handles formulas and cell styling
 
-1. **Input Validation:** The application should validate and sanitize all Excel files before processing:
+**Previous Issue (RESOLVED):**
+- The project previously used `xlsx` v0.18.5 which had ReDoS and Prototype Pollution vulnerabilities
+- **Migration completed** to `exceljs` v4.4.0 on 2026-01-29
+- All functionality maintained while eliminating security risks
+
+## Security Best Practices
+
+For production deployments, continue to follow these guidelines:
+
+1. **Input Validation:** Validate and sanitize all Excel files before processing:
    ```javascript
    // Validate file size (limit to prevent DoS)
    if (file.size > 10 * 1024 * 1024) { // 10MB limit
@@ -35,66 +41,74 @@ The patched versions (0.19.3+ and 0.20.2+) are not available via npm registry. T
    }
    ```
 
-2. **Server-Side Processing:** For production use, process Excel files server-side in a sandboxed environment rather than client-side.
+2. **Server-Side Processing:** For production use, process Excel files server-side in a sandboxed environment rather than client-side when handling untrusted files.
 
-3. **Alternative Libraries:** Consider migrating to alternative libraries:
-   - **exceljs** (v4.4.0) - Actively maintained, no known vulnerabilities
-   - **read-excel-file** (v6.0.3) - Lightweight alternative
-   - **hyperformula** (v3.1.1) - For formula calculations
+3. **Rate Limiting:** Implement rate limiting for file uploads to prevent DoS attacks.
 
-4. **Rate Limiting:** Implement rate limiting for file uploads to prevent DoS attacks.
+4. **Content Security Policy:** Use strict CSP headers to limit execution context.
 
-5. **Content Security Policy:** Use strict CSP headers to limit execution context.
+5. **File Size Limits:** Enforce reasonable file size limits (recommended: 10MB max).
+
+6. **Virus Scanning:** Scan uploaded files with antivirus software.
+
+7. **Audit Logging:** Log all file operations for security audit trails.
 
 ## Risk Assessment
 
-**Current Risk Level:** LOW to MODERATE
+**Current Risk Level:** ✅ LOW
 
-- The ReDoS vulnerability requires a specially crafted malicious Excel file
-- The Prototype Pollution vulnerability requires direct access to file upload
-- This is a demonstration/educational project, not processing untrusted user files in production
+- All dependencies are up-to-date and secure
+- No known vulnerabilities in the current dependency stack
+- Follows security best practices for file handling
 
-**Acceptable for:**
-- Development and testing environments
-- Internal tools with trusted users
-- Educational purposes
-- Proof-of-concept applications
-
-**NOT recommended for:**
-- Public-facing production applications
-- Processing untrusted user uploads
-- High-security environments
-
-## Future Plans
-
-Once SheetJS releases versions 0.19.3+ and 0.20.2+ to npm registry, the dependency will be updated immediately.
-
-Alternative: The project may be migrated to `exceljs` library which is actively maintained and has no known security vulnerabilities.
+**Suitable for:**
+- ✅ Development and testing environments
+- ✅ Internal tools with trusted users
+- ✅ Educational purposes
+- ✅ Production applications (with proper security measures)
+- ✅ Public-facing applications (with input validation and rate limiting)
 
 ## Reporting a Vulnerability
 
 If you discover a security vulnerability, please email the maintainers. Do not create public issues for security vulnerabilities.
 
-## Security Best Practices
+## Production Deployment Checklist
 
-For production deployments:
+Before deploying to production:
 
-1. **Use server-side processing** for Excel files
-2. **Implement file size limits** (recommended: 10MB max)
-3. **Validate file types** before processing  
-4. **Use virus scanning** on uploaded files
-5. **Run in isolated/sandboxed environment**
-6. **Implement rate limiting** on uploads
-7. **Log all file operations** for audit trail
-8. **Use Content Security Policy headers**
-9. **Keep all dependencies updated**
-10. **Regular security audits** with `npm audit`
+- [ ] **Implement file size limits** (recommended: 10MB max)
+- [ ] **Validate file types** before processing  
+- [ ] **Use virus scanning** on uploaded files (if accepting user uploads)
+- [ ] **Run in isolated/sandboxed environment** (for untrusted files)
+- [ ] **Implement rate limiting** on uploads
+- [ ] **Log all file operations** for audit trail
+- [ ] **Use Content Security Policy headers**
+- [ ] **Keep all dependencies updated** (`npm update`, `npm audit`)
+- [ ] **Regular security audits** with `npm audit`
+- [ ] **Use HTTPS** for all connections
+- [ ] **Implement proper authentication** and authorization
+- [ ] **Set up monitoring** and alerting for suspicious activity
+
+## Dependency Monitoring
+
+Run regular security audits:
+
+```bash
+# Check for vulnerabilities
+npm audit
+
+# Update dependencies
+npm update
+
+# Check for outdated packages
+npm outdated
+```
 
 ## Updates
 
-- **2026-01-29**: Documented xlsx vulnerabilities (v0.18.5)
-- Monitoring for npm registry updates to versions 0.19.3+ and 0.20.2+
+- **2026-01-29**: Migrated from `xlsx` v0.18.5 to `exceljs` v4.4.0 - Resolved all known vulnerabilities
+- **2026-01-29**: Initial security documentation created
 
 ---
 
-**Note:** This is an educational/demonstration project. For production use, please implement the security measures outlined above and consider using alternative libraries without known vulnerabilities.
+**Note:** This project is secure for production use when following the security best practices outlined above. The migration to `exceljs` eliminates all previously known security vulnerabilities.

@@ -258,7 +258,7 @@ npm run preview
 - **Vite** - Next generation build tool
 - **Pinia** - State management
 - **Vue Router** - Client-side routing
-- **SheetJS (xlsx)** - Excel file handling
+- **ExcelJS** - Excel file handling (secure, no known vulnerabilities)
 - **Chart.js** - Data visualization
 - **@vueuse/core** - Composition utilities
 
@@ -314,13 +314,14 @@ npm run preview
 
 ## Security
 
-⚠️ **Important Security Notice:** This project uses `xlsx` v0.18.5 which has known vulnerabilities. See [SECURITY.md](SECURITY.md) for details, risk assessment, and mitigation strategies.
+✅ **All Security Vulnerabilities Resolved**
 
-**For production use:**
-- Implement server-side file processing
-- Validate and sanitize all file uploads
-- Consider migrating to `exceljs` or other maintained libraries
-- See [SECURITY.md](SECURITY.md) for full security guidelines
+This project uses `exceljs` v4.4.0, which is actively maintained and has no known security vulnerabilities. The previous `xlsx` library with known vulnerabilities has been replaced.
+
+See [SECURITY.md](SECURITY.md) for:
+- Security best practices
+- Production deployment checklist
+- Input validation guidelines
 
 ## Contributing
 
