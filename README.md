@@ -312,6 +312,16 @@ npm run preview
 - Safari
 - Edge
 
+## Security
+
+⚠️ **Important Security Notice:** This project uses `xlsx` v0.18.5 which has known vulnerabilities. See [SECURITY.md](SECURITY.md) for details, risk assessment, and mitigation strategies.
+
+**For production use:**
+- Implement server-side file processing
+- Validate and sanitize all file uploads
+- Consider migrating to `exceljs` or other maintained libraries
+- See [SECURITY.md](SECURITY.md) for full security guidelines
+
 ## Contributing
 
 This is an educational project demonstrating Excel-like functionality in a web application.
