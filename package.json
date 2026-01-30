@@ -11,10 +11,10 @@
   "dependencies": {
     "@nuxt/ui": "^4.4.0",
     "@types/file-saver": "^2.0.7",
+    "exceljs": "^4.4.0",
     "file-saver": "^2.0.5",
     "jspreadsheet-ce": "^5.0.4",
     "jsuites": "^6.1.1",
-    "nuxt": "^4.3.0",
-    "xlsx": "^0.18.5"
+    "nuxt": "^4.3.0"
   }
 }

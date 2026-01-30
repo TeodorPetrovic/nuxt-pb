@@ -69,7 +69,7 @@ A comprehensive Excel-like spreadsheet application built with Nuxt 3, Vue.js, Ty
 - **TypeScript**: Type-safe JavaScript
 - **NuxtUI v4**: Beautiful UI components
 - **jspreadsheet-ce**: Open-source spreadsheet component
-- **xlsx**: Excel file handling
+- **exceljs**: Excel file handling (secure, no vulnerabilities)
 - **file-saver**: File download functionality
 
 ## Getting Started

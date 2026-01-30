@@ -356,7 +356,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch, nextTick } from 'vue'
 import jspreadsheet from 'jspreadsheet-ce'
-import * as XLSX from 'xlsx'
+import ExcelJS from 'exceljs'
 import { saveAs } from 'file-saver'
 
 // Types
@@ -930,23 +930,28 @@ function switchSheet(index: number) {
 }
 
 // Excel Import/Export
-function downloadExcel() {
+async function downloadExcel() {
   try {
-    const workbook = XLSX.utils.book_new()
+    const workbook = new ExcelJS.Workbook()
     
     // Add all sheets to workbook
-    sheets.value.forEach(sheet => {
+    for (const sheet of sheets.value) {
       let data = sheet.data
       if (sheet.instance?.getData) {
         data = sheet.instance.getData()
       }
-      const worksheet = XLSX.utils.aoa_to_sheet(data)
-      XLSX.utils.book_append_sheet(workbook, worksheet, sheet.name)
-    })
+      
+      const worksheet = workbook.addWorksheet(sheet.name)
+      
+      // Add data to worksheet
+      data.forEach((row: any[]) => {
+        worksheet.addRow(row)
+      })
+    }
     
     // Generate Excel file
-    const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' })
-    const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
+    const buffer = await workbook.xlsx.writeBuffer()
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
     
     // Download file
     saveAs(blob, 'spreadsheet.xlsx')
@@ -961,44 +966,50 @@ function uploadExcel() {
   fileInput.value?.click()
 }
 
-function handleFileUpload(event: Event) {
+async function handleFileUpload(event: Event) {
   const target = event.target as HTMLInputElement
   const file = target.files?.[0]
   if (!file) return
   
-  const reader = new FileReader()
-  reader.onload = (e) => {
-    try {
-      const data = new Uint8Array(e.target?.result as ArrayBuffer)
-      const workbook = XLSX.read(data, { type: 'array' })
+  try {
+    const workbook = new ExcelJS.Workbook()
+    const arrayBuffer = await file.arrayBuffer()
+    await workbook.xlsx.load(arrayBuffer)
+    
+    // Clear existing sheets
+    sheets.value = []
+    
+    // Load all sheets from Excel
+    workbook.eachSheet((worksheet, sheetId) => {
+      const data: any[][] = []
       
-      // Clear existing sheets
-      sheets.value = []
-      
-      // Load all sheets from Excel
-      workbook.SheetNames.forEach((sheetName, index) => {
-        const worksheet = workbook.Sheets[sheetName]
-        const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as any[][]
-        
-        sheets.value.push({
-          id: `sheet${index + 1}`,
-          name: sheetName,
-          instance: null,
-          data: jsonData
+      worksheet.eachRow((row, rowNumber) => {
+        const rowData: any[] = []
+        row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+          rowData.push(cell.value?.toString() || '')
         })
+        data.push(rowData)
       })
       
-      // Switch to first sheet
+      sheets.value.push({
+        id: `sheet${sheetId}`,
+        name: worksheet.name,
+        instance: null,
+        data: data
+      })
+    })
+    
+    // Switch to first sheet
+    if (sheets.value.length > 0) {
       currentSheetIndex.value = 0
       switchSheet(0)
-      
-      showNotification('Excel file imported successfully')
-    } catch (error) {
-      console.error('Error importing Excel:', error)
-      showNotification('Error importing Excel file')
     }
+    
+    showNotification('Excel file imported successfully')
+  } catch (error) {
+    console.error('Error importing Excel:', error)
+    showNotification('Error importing Excel file')
   }
-  reader.readAsArrayBuffer(file)
 }
 
 // Utility
