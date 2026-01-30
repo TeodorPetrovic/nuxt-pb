@@ -406,7 +406,7 @@ const numberFormats = ['General', 'Number', 'Currency', 'Accounting', 'Date', 'T
 // Get current spreadsheet instance
 const currentSpreadsheet = computed(() => {
   const sheet = sheets.value[currentSheetIndex.value]
-  return sheet?.instance?.[0] // jspreadsheet returns an array of worksheets
+  return sheet?.instance // jspreadsheet instance directly
 })
 
 // Initialize
@@ -881,17 +881,18 @@ function switchSheet(index: number) {
   if (index === currentSheetIndex.value) return
   
   // Save current sheet data
-  if (currentSpreadsheet.value) {
-    const activeWorksheet = currentSpreadsheet.value[0]
-    if (activeWorksheet && activeWorksheet.getData) {
-      sheets.value[currentSheetIndex.value].data = activeWorksheet.getData()
-    }
+  if (currentSpreadsheet.value && currentSpreadsheet.value.getData) {
+    sheets.value[currentSheetIndex.value].data = currentSpreadsheet.value.getData()
   }
   
   currentSheetIndex.value = index
   
   // Recreate spreadsheet for new sheet
   if (spreadsheetContainer.value) {
+    // Destroy old instance if it exists
+    if (currentSpreadsheet.value && currentSpreadsheet.value.destroy) {
+      currentSpreadsheet.value.destroy()
+    }
     spreadsheetContainer.value.innerHTML = ''
     
     const options = {
@@ -936,8 +937,8 @@ function downloadExcel() {
     // Add all sheets to workbook
     sheets.value.forEach(sheet => {
       let data = sheet.data
-      if (sheet.instance?.[0]?.getData) {
-        data = sheet.instance[0].getData()
+      if (sheet.instance?.getData) {
+        data = sheet.instance.getData()
       }
       const worksheet = XLSX.utils.aoa_to_sheet(data)
       XLSX.utils.book_append_sheet(workbook, worksheet, sheet.name)
@@ -989,10 +990,7 @@ function handleFileUpload(event: Event) {
       
       // Switch to first sheet
       currentSheetIndex.value = 0
-      if (spreadsheetContainer.value) {
-        spreadsheetContainer.value.innerHTML = ''
-        initializeSpreadsheet()
-      }
+      switchSheet(0)
       
       showNotification('Excel file imported successfully')
     } catch (error) {
